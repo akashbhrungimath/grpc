@@ -1,0 +1,17 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "BidirectionalStreamingClient2";
+
+package bidirectionalStreamPackage;
+
+service StartStreaming {
+	rpc FindSum (stream Inputs) returns (stream Outputs);
+}
+
+message Inputs {
+	int32 num = 1;
+}
+
+message Outputs{
+	int32 sum = 1;
+}
