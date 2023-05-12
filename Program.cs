@@ -1,36 +1,25 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
-using Grpc.Net.Client;
-using GrpcServerStreaming;
+using GrpcClientStreaming;
 using System.Threading;
-using Grpc.Core;
-
-namespace ServerStreamingClient
+using Grpc.Net.Client;
+namespace StreamerClient
 {
-    class ClientMultiple
+    class ClientAddition
     {
         static async Task Main(string[] args)
         {
-            var channel = GrpcChannel.ForAddress("http://localhost:5021");
-            var client = new ServerStream.ServerStreamClient(channel);
-            var num = Convert.ToInt32(Console.ReadLine());
-            var input = new InputNum { Num = num };
-            var CancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            using var stream = client.GetMultiples(input, cancellationToken: 
-                CancellationToken.Token);
-            try
+            var channel = GrpcChannel.ForAddress("http://localhost:5290");
+            var client = new ClientStream.ClientStreamClient(channel);
+            using var num = client.FindSum();
+            foreach (var item in new[] { 1, 2, 3, 4 })
             {
-                await foreach (var item in 
-                    stream.ResponseStream.ReadAllAsync(CancellationToken.Token))
-                {
-                    Console.WriteLine(item.Multiple);
-                }
+                Console.WriteLine("Input number Given = " + item);
+                await num.RequestStream.WriteAsync(new Inputs { Num = item });
             }
-            catch (RpcException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine("Press Enter to exit......");
+            await num.RequestStream.CompleteAsync();
+            var response = await num.ResponseAsync;
+            Console.WriteLine(response.Sum);
             Console.ReadLine();
         }
     }
