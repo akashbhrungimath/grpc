@@ -1,47 +1,49 @@
-using AuthDemo;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using GrpcClientCertificateServer.Services;
+using Microsoft.AspNetCore.Authentication.Certificate;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Additional configuration is required to successfully run gRPC on macOS.
+// For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
 
-builder.Services.AddControllers();
-var key = "This is my demo key";
+// Add services to the container.
+/*public static IHostBuilder CreateHostBuilder(string[] args) =>
+    Host.CreateDefaultBuilder(args)
+    .ConfigureWebHostDefaults(webBuilder =>
+    {
+        webBuilder.UseStartup<Program>();
+        webBuilder.ConfigureKestrel(o =>
+        {
+            o.ConfigureHttpsDefaults(o =>
+            {
+                o.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+                o.ServerCertificate = < MyCertificateWithPrivateKey >;
+            });
+        });
+    });*/
+builder.Services.AddGrpc();
 builder.Services.AddAuthentication(x =>
 {
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(x =>
+    x.DefaultAuthenticateScheme = CertificateAuthenticationDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = CertificateAuthenticationDefaults.AuthenticationScheme;
+}).AddCertificate();
+builder.Services.Configure<KestrelServerOptions>(options =>
 {
-    x.RequireHttpsMetadata = false;
-    x.SaveToken = true;
-    x.TokenValidationParameters = new TokenValidationParameters
+    options.ConfigureHttpsDefaults(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
+        options.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+    });
 });
-builder.Services.AddSingleton<IJwtAuthenticationManager>(new JwtAuthenticationManager(key));
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 app.UseAuthentication();
-
 app.UseAuthorization();
-
-app.MapControllers();
+app.MapGrpcService<StudentService>();
+app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 app.Run();

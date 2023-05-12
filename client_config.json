@@ -1,0 +1,19 @@
+{
+  "exclude": [
+    "**/bin",
+    "**/bower_components",
+    "**/jspm_packages",
+    "**/node_modules",
+    "**/obj",
+    "**/platforms"
+  ],
+  "port": "7282",
+  "Security": {
+    "client_cert": "client_certificate.pem",
+    "client_key": "client_key.pem",
+    "client_cert_pfx": "client.pfx",
+    "client_cert_pfx_password": "password123",
+    "server_cert": "server_certificate.pem"
+  },
+  "example_files": "project2.sln"
+}

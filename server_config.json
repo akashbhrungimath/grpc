@@ -1,0 +1,22 @@
+{
+  "exclude": [
+    "**/bin",
+    "**/bower_components",
+    "**/jspm_packages",
+    "**/node_modules",
+    "**/obj",
+    "**/platforms"
+  ],
+  "port": 7282,
+  "security": {
+    "server_cert": "../../../CommonFiles/Certs/server_certificate.pem",
+    "server_key": "../../../CommonFiles/Certs/server_key.pem",
+    "server_cert_pfx": "../../../CommonFiles/Certs/server.pfx",
+    "server_cert_pfx_password": "password123",
+    "root_cert": "../../../CommonFiles/Certs/ca.crt"
+  },
+  "cors": {
+    "enable": false,
+    "origins": [ ]
+  }
+}
